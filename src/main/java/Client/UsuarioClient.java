@@ -1,10 +1,8 @@
-package Cliente;
-
+package Client;
 import API.Usuario;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -13,8 +11,9 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteUsuario {
+public class UsuarioClient {
     static final String USUARIOS = "http://localhost:4567/usuarios";
+    static ObjectMapper mapper = new ObjectMapper();
     static String json = getJson();
 
     public static String getJson() {
@@ -36,25 +35,21 @@ public class ClienteUsuario {
     public static void cadastrarUsuario(Usuario usuario) {
         try {
             HttpClient cliente = HttpClient.newBuilder().build();
-            ObjectMapper mapper = new ObjectMapper();
-            String requestBody = mapper.writeValueAsString(usuario);
-            HttpRequest request = HttpRequest.newBuilder()
+            String json = mapper.writeValueAsString(usuario);
+            HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(USUARIOS))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
-            HttpResponse<String> res = cliente.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> res = cliente.send(req, HttpResponse.BodyHandlers.ofString());
             System.out.println(res.body());
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-
     public static List<Usuario> getUsuariosToList() {
         List<Usuario> usuarios = new ArrayList<>();
         try {
-            ObjectMapper mapper = new ObjectMapper();
             usuarios = mapper.readValue(json, new TypeReference<List<Usuario>>() {});
         }
         catch (JsonProcessingException e) {

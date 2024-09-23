@@ -1,8 +1,9 @@
 import API.Jogo;
+import API.Review;
 import API.Usuario;
-import Cliente.ClienteJogo;
-import Cliente.ClienteUsuario;
-
+import Client.JogoClient;
+import Client.ReviewClient;
+import Client.UsuarioClient;
 import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Objects;
@@ -10,33 +11,42 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        List<Jogo> jogos = ClienteJogo.getJogosToList();
-        List<Usuario> usuarios = ClienteUsuario.getUsuariosToList();
+        List<Jogo> jogos = JogoClient.getJogosToList();
+        List<Usuario> usuarios = UsuarioClient.getUsuariosToList();
+        Usuario usuarioAtual = new Usuario();
 
-        boolean sair = false;
+        boolean saidaMenuInicial = false;
 
-        System.out.println("1. Fazer Login");
-        System.out.println("2. Criar Conta");
-        while (!sair) {
+        while (!saidaMenuInicial) {
             int opcao;
-            opcao = entrarIntPositivo();
+            exibirMenuInicial();
+            opcao = entrarInt();
+
             switch (opcao) {
                 case 1:
                     System.out.println("Digite seu login:");
-                    Usuario usuarioAtual = verificarLogin(usuarios);
+                    usuarioAtual = verificarLogin(usuarios);
                     System.out.println("Digite sua senha:");
-                    buscarSenha(usuarioAtual);
-                    System.out.println("Olá, " + usuarioAtual.getNickName() + "!\n");
-                    sair = true;
+                    verificarSenha(usuarioAtual);
+                    System.out.println("Olá, " + usuarioAtual.getNickName());
+                    saidaMenuInicial = true;
                     break;
                 case 2:
                     System.out.println("Digite o nome de usuário desejado:");
                     String novoLogin = verificarNovoLogin(usuarios);
                     System.out.println("Digite a senha desejada:");
                     String novaSenha = verificarNovaSenha();
-                    cadastrarUsuario(usuarios, novoLogin, novaSenha);
-                    System.out.println("Olá, " + novoLogin + "!\n");
-                    sair = true;
+                    usuarioAtual = criarUsuario(usuarios, novoLogin, novaSenha);
+                    UsuarioClient.cadastrarUsuario(usuarioAtual);
+                    System.out.println("Olá, " + usuarioAtual.getNickName());
+                    saidaMenuInicial = true;
+                    break;
+                case 0:
+                    System.out.println("Encerrando...");
+                    saidaMenuInicial = true;
+                    break;
+                default:
+                    System.out.println("Opção inválida, tente novamente.");
                     break;
             }
         }
@@ -44,6 +54,7 @@ public class Main {
             int opcao;
             exibirJogos(jogos);
             opcao = entrarInt();
+
             if (opcao == 0) {
                 System.out.println("Encerrando...");
                 break;
@@ -54,25 +65,73 @@ public class Main {
             else {
                 Jogo jogoAtual = jogos.get(opcao - 1);
                 exibirDadosJogo(jogoAtual);
-                System.out.println("\n[1] - Retornar");
-                System.out.println("[0] - Sair");
+                System.out.println("\n[1] - Ver reviews");
+                System.out.println("[2] - Escrever review");
+
                 opcao = entrarInt();
-                if (opcao == 0) {
-                    System.out.println("Encerrando...");
-                    break;
+
+                switch (opcao) {
+                    case 1:
+                        exibirReviews(jogoAtual.getId());
+                        break;
+                    case 2:
+                        System.out.println("Digite sua review para " + jogoAtual.getNome() + ":");
+                        Review review = criarReview(jogoAtual.getId(), usuarioAtual.getNickName());
+                        ReviewClient.registrarReview(review);
+                        break;
+                    default:
+                        System.out.println("Opção inválida, tente novamente.");
+                        break;
                 }
             }
         }
     }
 
+    public static void exibirReviews(int id) {
+        List<Review> reviews = ReviewClient.getReviewsToList();
+        boolean temReview = false;
+        for (Review review : reviews) {
+            if (review.getId() == id) {
+                temReview = true;
+                System.out.println("\nReview de " + review.getAutor() + ":");
+                System.out.println(review.getTexto());
+            }
+        }
+        if (!temReview) {
+            System.out.println("Ainda não há reviews para este jogo.");
+        }
+    }
+
+    public static Review criarReview(int id, String autor) {
+        Scanner sc = new Scanner(System.in);
+        String texto;
+        Review review;
+        while (true) {
+            texto = sc.nextLine();
+            if (texto.isBlank()) {
+                System.out.println("A review não pode estar em branco.");
+            }
+            else {
+                review = new Review(id, autor, texto);
+                break;
+            }
+        }
+        return review;
+    }
+
+    public static void exibirMenuInicial() {
+        System.out.println("\n[1] - Fazer Login");
+        System.out.println("[2] - Criar Conta");
+        System.out.println("\n[0] - Sair");
+    }
+
    public static void exibirDadosJogo(Jogo jogo) {
        System.out.println("\nTítulo: " + jogo.getNome());
        System.out.println("Gênero: " + jogo.getGenero());
-       System.out.println("Descricao: " + jogo.getDescricao());
    }
 
     public static void exibirJogos(List<Jogo> jogos) {
-        System.out.println("Lista de Jogos:");
+        System.out.println("\nLista de Jogos:");
         for (Jogo jogo : jogos) {
             System.out.println("[" + jogo.getId() + "]" + " - " + jogo.getNome());
         }
@@ -80,10 +139,9 @@ public class Main {
         System.out.println("Digite o número correspondente ao jogo desejado para ver mais informações:");
     }
 
-    public static void cadastrarUsuario(List<Usuario> usuarios, String login, String senha) {
+    public static Usuario criarUsuario(List<Usuario> usuarios, String login, String senha) {
         int id = usuarios.size() + 1;
-        Usuario novoUsuario = new Usuario(id, login, senha);
-        ClienteUsuario.cadastrarUsuario(novoUsuario);
+        return new Usuario(id, login, senha);
     }
 
     public static String verificarNovoLogin(List<Usuario> usuarios) {
@@ -144,7 +202,7 @@ public class Main {
         return usuarioSelecionado;
     }
 
-    public static void buscarSenha(Usuario usuario) {
+    public static void verificarSenha(Usuario usuario) {
         Scanner sc = new Scanner(System.in);
         String senha;
         while (true) {
@@ -165,28 +223,6 @@ public class Main {
             try {
                 numero = sc.nextInt();
                 break;
-            }
-            catch (InputMismatchException e) {
-                System.out.println("Digite uma opção válida.");
-                sc.next();
-            }
-        }
-        return numero;
-    }
-
-
-    public static int entrarIntPositivo() {
-        Scanner sc = new Scanner(System.in);
-        int numero = 0;
-        while (true) {
-            try {
-                numero = sc.nextInt();
-                if (numero < 1) {
-                    System.out.println("Digite um numero positivo.");
-                }
-                else {
-                    break;
-                }
             }
             catch (InputMismatchException e) {
                 System.out.println("Digite uma opção válida.");

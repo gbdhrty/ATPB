@@ -21,8 +21,7 @@ public class JogoService {
                 int id = Integer.parseInt(campos[0]);
                 String jogo = campos[1];
                 String genero = campos[2];
-                String descricao = campos[3];
-                Jogo novoJogo = new Jogo(id, jogo, genero, descricao);
+                Jogo novoJogo = new Jogo(id, jogo, genero);
                 this.jogos.add(novoJogo);
                 linha = br.readLine();
             }

@@ -14,7 +14,6 @@ public class UsuarioService {
             BufferedReader br = new BufferedReader(new FileReader(arqUsuarios));
             String linha = br.readLine();
             while (linha != null) {
-                System.out.println("Linha lida: " + linha);
                 String[] campos = linha.split(";");
                 int id = Integer.parseInt(campos[0]);
                 String nickName = campos[1];
@@ -32,7 +31,6 @@ public class UsuarioService {
     }
 
     public void criarUsuario(Usuario usuario) {
-        System.out.println("Criando usuário");
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(arqUsuarios, true));
             bw.write(usuario.getId() + ";" + usuario.getNickName() + ";" + usuario.getSenha());
@@ -42,6 +40,5 @@ public class UsuarioService {
         catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        System.out.println("Usuario criado");
     }
 }

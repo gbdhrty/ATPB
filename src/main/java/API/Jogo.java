@@ -13,5 +13,4 @@ public class Jogo {
     private int id;
     private String nome;
     private String genero;
-    private String descricao;
 }

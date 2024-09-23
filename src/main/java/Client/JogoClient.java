@@ -1,4 +1,4 @@
-package Cliente;
+package Client;
 
 import API.Jogo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,10 +13,10 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClienteJogo {
+public class JogoClient {
     static final String JOGOS = "http://localhost:4567/jogos";
+    static ObjectMapper mapper = new ObjectMapper();
     static String json = getJson();
-
 
     public static String getJson() {
         String json = "";
@@ -37,7 +37,6 @@ public class ClienteJogo {
     public static List<Jogo> getJogosToList() {
         List<Jogo> jogos = new ArrayList<>();
         try {
-            ObjectMapper mapper = new ObjectMapper();
             jogos = mapper.readValue(json, new TypeReference<List<Jogo>>() {});
         }
         catch (JsonProcessingException e) {
